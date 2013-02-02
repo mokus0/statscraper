@@ -8,7 +8,7 @@ import Reactive.Banana.Frameworks
 import Reactive.Banana.HostName
 import Reactive.Banana.PollFile
 import Reactive.Banana.Stats.IfStat
-import Reactive.Banana.Stats.IoStat
+import Reactive.Banana.Stats.IOStat.MacOS
 import Reactive.Banana.Stats.StatsD
 import Reactive.Banana.Stats.Uptime
 import Network.StatsD
@@ -26,7 +26,7 @@ main = do
             ifstatE <- ifstat 5
             publishStats statsd (ifStats <$> hostnameB <@> ifstatE)
             
-            iostatE <- iostat_macos 5
+            iostatE <- iostat 2
             publishStats statsd (ioStats <$> hostnameB <@> iostatE)
             
     forever (threadDelay 10000000)

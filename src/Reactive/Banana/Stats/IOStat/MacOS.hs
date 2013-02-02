@@ -1,6 +1,6 @@
-module Reactive.Banana.Stats.IoStat
+module Reactive.Banana.Stats.IOStat.MacOS
     ( IOStatSection(..)
-    , iostat_macos
+    , iostat
     ) where
 
 import Data.Char
@@ -60,7 +60,7 @@ emit state = do
     
     return (zip buckets vs)
 
-iostat_macos interval = do
+iostat interval = do
     (outE, errE, excE, eofE) <- monitorProcess "iostat" [show interval]
     let stateE = accumE initState (accumState . outLine . words <$> outE)
     return (filterJust (emit <$> stateE))
