@@ -25,6 +25,7 @@ data LoadAverages = LoadAverages !Float !Float !Float
 sample1 = "20:38  up 10 days, 22:45, 4 users, load averages: 0.84 0.65 0.61\n"
 sample2 = " 17:23:09 up 71 days, 22:43,  5 users,  load average: 0.34, 0.15, 0.17\n"
 sample3 = " 12:41:19 up 46 min,  2 users,  load average: 0.00, 0.01, 0.05\n"
+sample4 = " 18:55:22 up  6:49,  3 users,  load average: 0.03, 0.03, 0.05\n"
 
 int :: (Stream s m Char, Num t) => ParsecT s u m t
 int = fromInteger . read <$> many digit
@@ -32,7 +33,7 @@ int = fromInteger . read <$> many digit
 diffTime :: (Stream s m Char) => ParsecT s u m DiffTime
 diffTime =
     try (fromDHM
-        <$> int <* string " days, "
+        <$> option 0 (try (int <* string " days, "))
         <*> int <* char ':' <*> int)
     <|> (fromDHM 0
         <$> int <* string " min"
