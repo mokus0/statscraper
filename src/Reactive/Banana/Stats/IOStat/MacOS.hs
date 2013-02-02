@@ -58,8 +58,9 @@ emit state = do
             , subSection <- subSections
             ]
     
-    return (zip buckets vs)
+    return (uncurry zip3 (unzip buckets) vs)
 
+iostat :: Frameworks t => Int -> Moment t (Event t [(IOStatSection, String, Float)])
 iostat interval = do
     (outE, errE, excE, eofE) <- monitorProcess "iostat" [show interval]
     let stateE = accumE initState (accumState . outLine . words <$> outE)

@@ -45,14 +45,15 @@ emit state = do
     section <- getFinishedSection (mode state)
     return $ case section of
         -- TODO: not use head
-        CPU     -> Left (zip (columns state) (head (rows state)))
+        CPU     -> Left (zip (columns state) (map read (head (rows state))))
         Disks   -> Right 
-            [ (disk, zip (columns state) row)
+            [ (disk, zip (columns state) (map read row))
             | (disk: row) <- rows state
             ]
 
+iostat :: Frameworks t => Int -> Moment t (Event t [(String, Float)], Event t [(String, [(String, Float)])])
 iostat interval = do
-    (outE, errE, excE, eofE) <- monitorProcess "iostat" [show interval]
+    (outE, errE, excE, eofE) <- monitorProcess "iostat" ["-N", show interval]
     let stateE = accumE initState (accumState . words <$> outE)
     
     return (split (filterJust (emit <$> stateE)))

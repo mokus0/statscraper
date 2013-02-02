@@ -8,10 +8,14 @@ import Reactive.Banana.Frameworks
 import Reactive.Banana.HostName
 import Reactive.Banana.PollFile
 import Reactive.Banana.Stats.IfStat
-import Reactive.Banana.Stats.IOStat.MacOS
+import Reactive.Banana.Stats.IOStat
 import Reactive.Banana.Stats.StatsD
 import Reactive.Banana.Stats.Uptime
 import Network.StatsD
+
+publishStats' statsd stat = do
+    reactimate (mapM_ (putStrLn . showStat) <$> stat)
+    publishStats statsd stat
 
 main = do
     statsd <- openStatsD "stats.thecave.lan" "8125" ["system"]
@@ -21,13 +25,13 @@ main = do
             hostnameB <- fmap (fmap (takeWhile (/= '.'))) (hostname 300)
             
             uptimeE <- uptime 60
-            publishStats statsd (uptimeStats <$> hostnameB <@> uptimeE)
+            publishStats' statsd (uptimeStats <$> hostnameB <@> uptimeE)
             
             ifstatE <- ifstat 5
-            publishStats statsd (ifStats <$> hostnameB <@> ifstatE)
+            publishStats' statsd (ifStats <$> hostnameB <@> ifstatE)
             
             iostatE <- iostat 2
-            publishStats statsd (ioStats <$> hostnameB <@> iostatE)
+            publishStats' statsd (ioStats <$> hostnameB <@> iostatE)
             
     forever (threadDelay 10000000)
 
@@ -43,7 +47,7 @@ ifStats host ifstats =
 
 ioStats host iostats = 
     [ stat [host, sectionBucket section, subsection] value "g" Nothing
-    | ((section, subsection), value) <- iostats
+    | (section, subsection, value) <- iostats
     ] where
         sectionBucket CPU           = "cpu"
         sectionBucket Load          = "load"
