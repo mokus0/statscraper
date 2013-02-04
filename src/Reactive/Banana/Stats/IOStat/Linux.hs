@@ -20,10 +20,10 @@ data Mode
     deriving (Eq, Show)
 
 data IOStatState = IOStatState
-    { mode          :: Mode
-    , headerLine    :: [String]
-    , columns       :: [String]
-    , rows          :: [[String]]
+    { mode          :: !Mode
+    , headerLine    :: ![String]
+    , columns       :: ![String]
+    , rows          :: ![[String]]
     } deriving (Eq, Show)
 
 initState = IOStatState Start [] [] []

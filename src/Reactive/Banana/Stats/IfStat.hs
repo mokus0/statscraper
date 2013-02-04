@@ -26,9 +26,9 @@ asUnits [] = Just []
 asUnits _ = Nothing
 
 data IfStatState = IfStatState
-    { ifs       :: [String]
-    , units     :: [(String, String)]
-    , values    :: Maybe [Float]
+    { ifs       :: ![String]
+    , units     :: ![(String, String)]
+    , values    :: !(Maybe [Float])
     } deriving (Eq, Show)
 
 initState = IfStatState [] [] Nothing
