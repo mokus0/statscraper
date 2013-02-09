@@ -11,17 +11,30 @@ import Reactive.Banana.Stats.IfStat
 import Reactive.Banana.Stats.IOStat
 import Reactive.Banana.Stats.StatsD
 import Reactive.Banana.Stats.Uptime
+import Reactive.Banana.Timer
 import Network.StatsD
+import System.Environment
+import System.Exit
 
 publishStats' statsd stat = do
     reactimate (mapM_ (putStrLn . showStat) <$> stat)
     publishStats statsd stat
 
 main = do
+    args <- getArgs
+    let duration = case args of 
+            []  -> 300
+            x:_ -> read x
+    
     statsd <- openStatsD "stats.thecave.lan" "8125" ["system"]
+    done <- newEmptyMVar
     
     actuate =<< do
         compile $ do
+            timerE <- timer 1
+            let timeE = accumE 0 ((+1) <$ timerE)
+            reactimate (putMVar done () <$ filterE (> duration) timeE)
+            
             hostnameB <- fmap (fmap (takeWhile (/= '.'))) (hostname 300)
             
             uptimeE <- uptime 60
@@ -32,8 +45,8 @@ main = do
             
             iostatE <- iostat 2
             publishStats' statsd (ioStats <$> hostnameB <@> iostatE)
-            
-    forever (threadDelay 10000000)
+    
+    takeMVar done
 
 uptimeStats host uptime = 
     [ stat [host, "uptime"] (round (duration uptime)) "g" Nothing
